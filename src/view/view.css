@@ -1,0 +1,38 @@
+.obsical-picker {
+    padding: 5px 15px;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+}
+.obsical-full.view-content {
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+}
+
+.obsical-dropdown {
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+    padding-bottom: 0.75rem;
+}
+
+.obsical-view-event .modal-content {
+    max-width: 75vw;
+}
+
+.fantasy-no-calendar {
+    color: var(--text-muted);
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.fantasy-title {
+    margin: 0;
+}
+
+.full-view .fantasy-title {
+    grid-column: span 3;
+}
