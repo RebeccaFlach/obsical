@@ -91,14 +91,6 @@ export interface Season {
         day: Day;
     };
 }
-export interface Moon {
-    name: string;
-    cycle: number;
-    offset: number;
-    faceColor: string;
-    shadowColor: string;
-    id: string;
-}
 
 export interface Event {
     name: string;
@@ -141,8 +133,6 @@ export interface StaticCalendarData {
     weekdays: Week;
     months: Month[];
     leapDays: LeapDay[];
-    moons: Moon[];
-    displayMoons: boolean;
     displayDayNumber: boolean;
     eras: Era[];
     offset?: number;

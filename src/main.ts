@@ -19,6 +19,7 @@ import FantasyCalendarView, {
 
 import "./main.css";
 import { Watcher } from "./watcher/watcher";
+import { PRESET_CALENDARS } from "./utils/presets";
 
 declare module "obsidian" {
     interface Workspace {
@@ -28,31 +29,8 @@ declare module "obsidian" {
 
 export const MODIFIER_KEY = Platform.isMacOS ? "Meta" : "Control";
 
-export const DEFAULT_CALENDAR: Calendar = {
-    name: null,
-    description: null,
-    id: null,
-    static: {
-        incrementDay: false,
-        firstWeekDay: null,
-        overflow: true,
-        weekdays: [],
-        months: [],
+export const DEFAULT_CALENDAR: Calendar = PRESET_CALENDARS[0];
 
-        moons: [],
-        displayMoons: true,
-        displayDayNumber: false,
-        leapDays: [],
-        eras: []
-    },
-    current: {
-        year: 1,
-        month: null,
-        day: null
-    },
-    events: [],
-    categories: []
-};
 
 export const DEFAULT_DATA: FantasyCalendarData = {
     calendars: [],
@@ -158,19 +136,6 @@ export default class FantasyCalendar extends Plugin {
             }
         });
 
-        this.addCommand({
-            id: "toggle-moons",
-            name: "Toggle Moons",
-            checkCallback: (checking) => {
-                const views = this.app.workspace.getLeavesOfType(VIEW_TYPE);
-                if (views && views.length) {
-                    if (!checking) {
-                        (views[0].view as FantasyCalendarView).toggleMoons();
-                    }
-                    return true;
-                }
-            }
-        });
         this.addCommand({
             id: "view-date",
             name: "View Date",

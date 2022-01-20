@@ -13,7 +13,6 @@
 
     const calendarStore = getContext<Writable<CalendarHelper>>("calendar");
     const dayViewStore = getContext<Writable<boolean>>("dayView");
-    const moonStore = getContext<Writable<boolean>>("displayMoons");
     let calendar: CalendarHelper;
     calendarStore.subscribe((c) => {
         calendar = c;
@@ -39,7 +38,6 @@
             },
             context: new Map([
                 ["dayView", dayViewStore],
-                ["displayMoons", moonStore]
             ])
         });
         svelteInstance.$on("day-click", (e) => dispatch("day-click", e.detail));

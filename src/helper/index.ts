@@ -1,6 +1,6 @@
 import { Events, Notice } from "obsidian";
 import type FantasyCalendar from "src/main";
-import { MOON_PHASES, Phase } from "src/utils/constants";
+
 import { dateString, wrap } from "src/utils/functions";
 import type {
     Calendar,
@@ -8,7 +8,6 @@ import type {
     Month,
     Event,
     LeapDay,
-    Moon
 } from "../@types";
 
 export class MonthHelper {
@@ -106,10 +105,6 @@ export class DayHelper {
             this.calendar.displayed.year == this.calendar.viewing.year &&
             this.calendar.displayed.month == this.calendar.viewing.month
         );
-    }
-
-    get moons() {
-        return this.calendar.getMoonsForDate(this.date);
     }
 
     constructor(public month: MonthHelper, public number: number) {}
@@ -577,40 +572,5 @@ export default class CalendarHelper extends Events {
         );
     }
 
-    /** Moons */
-    get moons() {
-        return this.data.moons;
-    }
-
-    getMoonsForDate(date: CurrentCalendarData): Array<[Moon, Phase]> {
-        const phases: Array<[Moon, Phase]> = [];
-
-        const month = this.getMonth(date.month, date.year);
-
-        const day = month.days[date.day - 1];
-
-        const daysBefore =
-            this.totalDaysBeforeYear(date.year, true) +
-            this.daysBeforeMonth(month, true) +
-            day.number -
-            1;
-        for (let moon of this.moons) {
-            const { offset, cycle } = moon;
-            const granularity = 24;
-
-            let data = (daysBefore - offset) / cycle;
-            let position = data - Math.floor(data);
-
-            const phase = (position * granularity) % granularity;
-
-            const options = MOON_PHASES[granularity];
-
-            phases.push([
-                moon,
-                options[wrap(Math.round(phase), options.length)]
-            ]);
-        }
-
-        return phases;
-    }
+    
 }

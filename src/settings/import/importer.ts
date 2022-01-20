@@ -5,7 +5,6 @@ import type {
     EventCategory,
     LeapDay,
     Month,
-    Moon,
     StaticCalendarData,
     Week
 } from "../../@types";
@@ -95,20 +94,6 @@ export default class Import {
                     });
                 }
             }
-            const moons: Moon[] = [];
-
-            if ("moons" in static_data) {
-                for (let moon of static_data["moons"]) {
-                    moons.push({
-                        name: moon.name ?? `Moon ${moons.length + 1}`,
-                        cycle: Number(moon.cycle) ?? avgLength,
-                        offset: moon.shift ?? 0,
-                        faceColor: moon.color ?? "#ffffff",
-                        shadowColor: moon.shadow_color ?? "#000000",
-                        id: nanoid(6)
-                    });
-                }
-            }
 
             const eras: Era[] = [];
             if ("eras" in static_data) {
@@ -131,10 +116,8 @@ export default class Import {
                 overflow,
                 weekdays,
                 months,
-                moons,
                 leapDays,
                 eras,
-                displayMoons: true,
                 incrementDay: false,
                 displayDayNumber: false
             };

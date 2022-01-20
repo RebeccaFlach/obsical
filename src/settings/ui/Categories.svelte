@@ -5,7 +5,6 @@
     import type { EventCategory } from "src/@types";
     import Detail from "./Detail.svelte";
     import { nanoid } from "src/utils/functions";
-    import { DEFAULT_CATEGORY_COLOR } from "src/utils/constants";
 
     const dispatch = createEventDispatcher();
 
@@ -40,7 +39,7 @@
     const addNew = () => {
         const cat = {
             id: nanoid(6),
-            color: DEFAULT_CATEGORY_COLOR,
+            color: "#808080",
             name: "Category"
         };
         categories = categories;
