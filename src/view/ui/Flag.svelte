@@ -2,7 +2,6 @@
     import { Platform, setIcon } from "obsidian";
 
     import type { CurrentCalendarData, Event, EventCategory } from "src/@types";
-    import { DEFAULT_CATEGORY_COLOR } from "src/utils/constants";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -40,11 +39,11 @@
 
     let color =
         categories.find((c) => c.id == event.category)?.color ??
-        DEFAULT_CATEGORY_COLOR;
+        "#808080";
 
     $: color =
         categories.find((c) => c.id == event.category)?.color ??
-        DEFAULT_CATEGORY_COLOR;
+        "#808080";
 
     const meta = Platform.isMacOS ? "Meta" : "Control";
 

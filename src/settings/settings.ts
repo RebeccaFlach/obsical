@@ -34,16 +34,13 @@ import type {
     Event,
     EventCategory,
     LeapDay,
-    Moon,
     Year as YearType
 } from "src/@types";
 
 import { CreateEventModal } from "./modals/event";
 import { confirmWithModal } from "./modals/confirm";
 
-import MoonUI from "./ui/Moons.svelte";
 import LeapDays from "./ui/LeapDays.svelte";
-import { CreateMoonModal } from "src/settings/modals/moons";
 import { CreateLeapDayModal } from "./modals/leapday";
 import { FolderSuggestionModal } from "src/suggester/folder";
 
@@ -442,7 +439,6 @@ class CreateCalendarModal extends Modal {
     infoDetailEl: HTMLDetailsElement;
     dateFieldEl: HTMLDivElement;
     uiEl: HTMLDivElement;
-    moonEl: HTMLDivElement;
     leapdayEl: any;
     yearEl: HTMLDivElement;
     get static() {
@@ -467,6 +463,7 @@ class CreateCalendarModal extends Modal {
         this.containerEl.addClass("obsical-create-calendar");
     }
     async display() {
+        console.log('displaying??')
         this.contentEl.empty();
 
         this.contentEl.createEl("h3", {
@@ -476,34 +473,19 @@ class CreateCalendarModal extends Modal {
         const presetEl = this.contentEl.createDiv(
             "obsical-apply-preset"
         );
-        new Setting(presetEl)
-            .setName("Apply Preset")
-            .setDesc("Apply a common fantasy calendar as a preset.")
-            .addButton((b) => {
-                b.setCta()
-                    .setButtonText("Choose Preset")
-                    .onClick(() => {
-                        const modal = new CalendarPresetModal(this.app);
-                        modal.onClose = () => {
-                            if (!modal.saved) return;
-                            if (modal.preset?.name == "Gregorian Calendar") {
-                                const today = new Date();
-
-                                modal.preset.current = {
-                                    year: today.getFullYear(),
-                                    month: today.getMonth(),
-                                    day: today.getDate()
-                                };
-                            }
-                            this.calendar = {
-                                ...modal.preset,
-                                id: this.calendar.id
-                            };
-                            this.display();
-                        };
-                        modal.open();
-                    });
-            });
+        
+            const today = new Date();
+            const preset = PRESET_CALENDARS[0];
+            preset.current = {
+                year: today.getFullYear(),
+                month: today.getMonth(),
+                day: today.getDate()
+            };
+        
+        this.calendar = {
+            ...preset,
+            id: this.calendar.id
+        };
 
         this.uiEl = this.contentEl.createDiv("obsical-ui");
 
@@ -524,8 +506,6 @@ class CreateCalendarModal extends Modal {
         this.buildEvents();
         this.categoryEl = this.uiEl.createDiv("obsical-element");
         this.buildCategories();
-        this.moonEl = this.uiEl.createDiv("obsical-element");
-        this.buildMoons();
     }
 
     buildInfo() {
@@ -786,19 +766,7 @@ class CreateCalendarModal extends Modal {
             );
             modal.onClose = () => {
                 if (!modal.saved) return;
-                if (modal.editing) {
-                    const index = this.calendar.static.moons.indexOf(
-                        this.calendar.static.moons.find(
-                            (e) => e.id === modal.leapday.id
-                        )
-                    );
-
-                    this.calendar.static.leapDays.splice(index, 1, {
-                        ...modal.leapday
-                    });
-                } else {
-                    this.calendar.static.leapDays.push({ ...modal.leapday });
-                }
+                //2022.1.19 rf this might be broken now
                 leapdayUI.$set({ leapdays: this.calendar.static.leapDays });
                 this.plugin.saveCalendar();
             };
@@ -899,51 +867,6 @@ class CreateCalendarModal extends Modal {
         });
     }
 
-    buildMoons() {
-        this.moonEl.empty();
-        this.static.displayMoons = this.static.displayMoons ?? true;
-        const moonsUI = new MoonUI({
-            target: this.moonEl,
-            props: {
-                moons: this.static.moons,
-                displayMoons: this.static.displayMoons
-            }
-        });
-        moonsUI.$on("display-toggle", (e: CustomEvent<boolean>) => {
-            this.static.displayMoons = e.detail;
-            moonsUI.$set({ displayMoons: this.static.displayMoons });
-        });
-        moonsUI.$on("new-item", async (e: CustomEvent<Moon>) => {
-            const modal = new CreateMoonModal(
-                this.app,
-                this.calendar,
-                e.detail
-            );
-            modal.onClose = () => {
-                if (!modal.saved) return;
-                if (modal.editing) {
-                    const index = this.calendar.static.moons.indexOf(
-                        this.calendar.static.moons.find(
-                            (e) => e.id === modal.moon.id
-                        )
-                    );
-
-                    this.calendar.static.moons.splice(index, 1, {
-                        ...modal.moon
-                    });
-                } else {
-                    this.calendar.static.moons.push({ ...modal.moon });
-                }
-                moonsUI.$set({ moons: this.calendar.static.moons });
-                this.plugin.saveCalendar();
-            };
-            modal.open();
-        });
-
-        moonsUI.$on("edit-moons", (e: CustomEvent<Moon[]>) => {
-            this.calendar.static.moons = e.detail;
-        });
-    }
     checkCanSave() {
         if (
             this.months?.length &&

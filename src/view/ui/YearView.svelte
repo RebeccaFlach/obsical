@@ -38,7 +38,6 @@
     const trackedMonths: Array<Month | HTMLHeadingElement> = [];
 
     const dayViewStore = getContext<Writable<boolean>>("dayView");
-    const moonStore = getContext<Writable<boolean>>("displayMoons");
 
     const appendObserver = new IntersectionObserver(
         (entries, observer) => {
@@ -206,7 +205,6 @@
             },
             context: new Map([
                 ["dayView", dayViewStore],
-                ["displayMoons", moonStore]
             ])
         });
         svelteInstance.$on("day-click", (e) => dispatch("day-click", e.detail));

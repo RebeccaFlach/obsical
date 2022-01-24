@@ -66,7 +66,6 @@ export default class FantasyCalendarView extends ItemView {
         return !("collapse" in this.root);
     }
     yearView: boolean = false;
-    moons: boolean = true;
     calendar: Calendar;
     /* calendarDropdownEl: HTMLDivElement; */
     protected _app: CalendarUI;
@@ -175,7 +174,6 @@ export default class FantasyCalendarView extends ItemView {
 
         this.calendar = calendar;
 
-        this.moons = this.calendar.static.displayMoons;
         this.dayNumber = this.calendar.static.displayDayNumber;
         this.helper = new CalendarHelper(this.calendar, this.plugin);
 
@@ -206,6 +204,7 @@ export default class FantasyCalendarView extends ItemView {
         this.updateCalendars();
     }
     build() {
+        console.log('building')
         this.contentEl.empty();
         this._app = new CalendarUI({
             target: this.contentEl,
@@ -213,7 +212,6 @@ export default class FantasyCalendarView extends ItemView {
                 calendar: this.helper,
                 fullView: this.full,
                 yearView: this.yearView,
-                moons: this.moons,
                 displayWeeks: this.helper.displayWeeks,
                 displayDayNumber: this.dayNumber
             }
@@ -303,13 +301,6 @@ export default class FantasyCalendarView extends ItemView {
                 ).onClick(() => {
                     this.yearView = !this.yearView;
                     this._app.$set({ yearView: this.yearView });
-                });
-            });
-            menu.addItem((item) => {
-                item.setTitle(
-                    this.moons ? "Hide Moons" : "Display Moons"
-                ).onClick(() => {
-                    this.toggleMoons();
                 });
             });
             menu.addItem((item) => {
@@ -589,10 +580,6 @@ export default class FantasyCalendarView extends ItemView {
         };
 
         modal.open();
-    }
-    toggleMoons() {
-        this.moons = !this.moons;
-        this._app.$set({ moons: this.moons });
     }
 
     async onClose() {}

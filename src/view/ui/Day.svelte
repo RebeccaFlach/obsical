@@ -2,7 +2,6 @@
     import type { DayHelper } from "src/helper";
     import type { Event } from "src/@types";
     import Dots from "./Dots.svelte";
-    import Moon from "./Moon.svelte";
 
     import { createEventDispatcher, getContext } from "svelte";
     import Flags from "./Flags.svelte";
@@ -21,7 +20,6 @@
             events = day.events;
         }
     }
-    $: moons = day.moons;
     $: categories = day.calendar.object.categories;
     $: date = day.date;
     $: today = day.isCurrentDay;
@@ -31,10 +29,6 @@
     const dayViewStore = getContext<Writable<boolean>>("dayView");
     dayViewStore.subscribe((v) => (dayView = v));
     $: dayView = dayView;
-
-    let displayMoons: boolean;
-    const moonStore = getContext<Writable<boolean>>("displayMoons");
-    moonStore.subscribe((v) => (displayMoons = v));
 
     day.calendar.on("month-update", () => {
         today = day.isCurrentDay;
@@ -63,13 +57,6 @@
         {day.number}
     </span>
     {#if fullView}
-        {#if displayMoons && moons && moons.length}
-            <div class="moon-container">
-                {#each moons as [moon, phase]}
-                    <Moon {moon} {phase} />
-                {/each}
-            </div>
-        {/if}
         <Flags
             {events}
             {categories}

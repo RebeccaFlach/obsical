@@ -5,7 +5,6 @@
     import { createEventDispatcher, getContext } from "svelte";
     import type { Writable } from "svelte/store";
     import Flags from "./Flags.svelte";
-    import Moon from "./Moon.svelte";
 
     export let displayDayNumber: boolean;
 
@@ -19,18 +18,12 @@
     $: date = calendar.viewing;
     $: dayNumber = calendar.dayNumberForDate(date);
     $: events = calendar.getEventsOnDate(calendar.viewing);
-    $: moons = calendar.getMoonsForDate(calendar.viewing);
     $: categories = calendar.object.categories;
-
-    let displayMoons: boolean;
-    const moonStore = getContext<Writable<boolean>>("displayMoons");
-    moonStore.subscribe((v) => (displayMoons = v));
 
     calendar.on("day-update", () => {
         date = calendar.viewing;
         currentDate = calendar.viewedDate;
         events = calendar.getEventsOnDate(calendar.viewing);
-        moons = calendar.getMoonsForDate(calendar.viewing);
     });
 
     const dispatch = createEventDispatcher();
@@ -95,13 +88,6 @@
             on:click={() => calendar.goToNextDay()}
         />
     </div>
-    {#if displayMoons && moons && moons.length}
-        <div class="moon-container">
-            {#each moons as [moon, phase]}
-                <Moon {moon} {phase} />
-            {/each}
-        </div>
-    {/if}
     <Flags
         {events}
         {categories}
