@@ -14,6 +14,8 @@ import {
     TFolder
 } from "obsidian";
 
+import { google } from "googleapis";
+
 import copy from "fast-copy";
 
 import { DEFAULT_CALENDAR } from "../main";
@@ -146,6 +148,50 @@ export default class FantasyCalendarSettings extends PluginSettingTab {
     }
     buildInfo() {
         this.infoEl.empty();
+
+
+        let token:string = '';
+
+        const oauth2Client = new google.auth.OAuth2(
+            CLIENT_ID,
+            CLIENT_SECRET,
+            'urn:ietf:wg:oauth:2.0:oob'
+        );
+
+        const handleAuthClick = async (event:any) => {
+            const url = oauth2Client.generateAuthUrl({
+                // 'online' (default) or 'offline' (gets refresh_token)
+                access_type: 'offline',
+
+                scope: 'https://www.googleapis.com/auth/calendar'
+            });
+            console.log('login url')
+            console.log(url);
+            // const {tokens} = await oauth2Client.getToken(code)
+            // oauth2Client.setCredentials(tokens);
+        }
+
+       
+        new Setting(this.infoEl)
+            .setName("Google Calendar")
+            .setDesc("The plugin will sync with Google Calendar.")
+            .addButton((b) => {
+                b.setButtonText("Sign In");
+                b.onClick((e) => {console.log("test"); handleAuthClick(e)});
+            })
+            .addText((t) => {
+                t.setValue(token).onChange(
+                    (v) => (token = v)
+                );
+            })
+            .addExtraButton((b) => {
+                b.setIcon("pencil").onClick(() => {
+                    console.log(token);
+                })
+            })
+            // .addInput()
+    
+    
         new Setting(this.infoEl)
             .setName("Default Calendar to Open")
             .setDesc("Views will open to this calendar by default.")
