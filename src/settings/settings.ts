@@ -150,25 +150,62 @@ export default class FantasyCalendarSettings extends PluginSettingTab {
         this.infoEl.empty();
 
 
-        let token:string = '';
+        let code:string = '';
+        
 
         const oauth2Client = new google.auth.OAuth2(
             CLIENT_ID,
             CLIENT_SECRET,
-            'urn:ietf:wg:oauth:2.0:oob'
+            'urn:ietf:wg:oauth:2.0:oob' //copy paste instead of callback url
         );
+
+        oauth2Client.setCredentials(JSON.parse(window.localStorage.getItem('tokens')));
+
+        function listEvents() {
+            console.log('listing events')
+            const calendar = google.calendar({version: 'v3', auth: oauth2Client});
+            calendar.events.list({
+              calendarId: 'primary',
+              timeMin: (new Date()).toISOString(),
+              maxResults: 10,
+              singleEvents: true,
+              orderBy: 'startTime',
+            }, (err, res) => {
+              if (err) return console.log('The API returned an error: ' + err);
+              const events = res.data.items;
+              if (events.length) {
+                console.log('Upcoming 10 events:');
+                events.map((event, i) => {
+                  const start = event.start.dateTime || event.start.date;
+                  console.log(`${start} - ${event.summary}`);
+                });
+              } else {
+                console.log('No upcoming events found.');
+              }
+            });
+          }
 
         const handleAuthClick = async (event:any) => {
             const url = oauth2Client.generateAuthUrl({
                 // 'online' (default) or 'offline' (gets refresh_token)
                 access_type: 'offline',
-
                 scope: 'https://www.googleapis.com/auth/calendar'
             });
             console.log('login url')
             console.log(url);
+            window.location.assign(url);
             // const {tokens} = await oauth2Client.getToken(code)
             // oauth2Client.setCredentials(tokens);
+        }
+
+        const login = () => {
+            console.log(code);
+            oauth2Client.getToken(code).then(({tokens}) => {
+                console.log(tokens)
+                oauth2Client.setCredentials(tokens);
+                window.localStorage.setItem('tokens', JSON.stringify(tokens));
+                listEvents();
+            })
         }
 
        
@@ -180,16 +217,20 @@ export default class FantasyCalendarSettings extends PluginSettingTab {
                 b.onClick((e) => {console.log("test"); handleAuthClick(e)});
             })
             .addText((t) => {
-                t.setValue(token).onChange(
-                    (v) => (token = v)
+                t.setValue(code).onChange(
+                    (v) => (code = v)
                 );
             })
             .addExtraButton((b) => {
-                b.setIcon("pencil").onClick(() => {
-                    console.log(token);
-                })
+                b.setIcon("pencil").onClick(login)
             })
             // .addInput()
+        new Setting(this.infoEl)
+            .setName('Fetch Test')
+            .addButton((b) => {
+                b.setButtonText('fetch');
+                b.onClick(() => {listEvents()})
+            })
     
     
         new Setting(this.infoEl)
