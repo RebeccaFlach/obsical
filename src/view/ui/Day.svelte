@@ -60,7 +60,6 @@
         <Flags
             {events}
             {categories}
-            {date}
             calendar={day.calendar}
             on:event-click
             on:event-mouseover
