@@ -16,17 +16,18 @@
     $: {
         if (event.end != undefined && !dayView) {
             multi = true;
-            start =
-                date.day === event.date.day &&
-                (event.date.month == undefined ||
-                    date.month == event.date.month) &&
-                (event.date.year == undefined || date.year === event.date.year);
-            first = start || date.day == 1;
-            end =
-                date.day === event.end.day &&
-                (event.end.month == undefined ||
-                    date.month == event.end.month) &&
-                (event.end.year == undefined || date.year === event.end.year);
+            start = true
+                // date.day === event.date.day &&
+                // (event.date.month == undefined ||
+                //     date.month == event.date.month) &&
+                // (event.date.year == undefined || date.year === event.date.year);
+            // first = start || date.day == 1;
+            first = true;
+            end = true
+                // date.day === event.end.day &&
+                // (event.end.month == undefined ||
+                //     date.month == event.end.month) &&
+                // (event.end.year == undefined || date.year === event.end.year);
             if (start && end) {
                 multi = false;
                 start = false;
