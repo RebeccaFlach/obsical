@@ -5,7 +5,7 @@
     "main": "main.js",
     "scripts": {
         "build": "webpack",
-        "dev": "set NODE_OPTIONS=--openssl-legacy-provider && webpack --config webpack.config.js -w --stats-children",
+        "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider && webpack --config webpack.config.js -w --stats-children",
         "test": "jest",
         "release": "standard-version"
     },
@@ -52,6 +52,7 @@
         "worker-loader": "^3.0.8"
     },
     "dependencies": {
-        "@popperjs/core": "^2.10.2"
+        "@popperjs/core": "^2.10.2",
+        "dayjs": "^1.10.7"
     }
 }
