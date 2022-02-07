@@ -102,6 +102,7 @@ export default class FantasyCalendarView extends ItemView {
         /* window.view = this; */
     }
     updateCalendars() {
+        console.log('update calendars')
         if (!this.updateMe) {
             this.updateMe = true;
             return;
@@ -130,6 +131,7 @@ export default class FantasyCalendarView extends ItemView {
     update(calendar: Calendar) {
         this.calendar = calendar;
         this.helper.update(this.calendar);
+        console.log(calendar)
 
         this.registerCalendarInterval();
 
@@ -190,7 +192,7 @@ export default class FantasyCalendarView extends ItemView {
 
         this.build();
     }
-    createEventForDay(date: CurrentCalendarData) {
+    createEventForDay(date: Date) {
         const modal = new CreateEventModal(this.app, this.calendar, null, date);
 
         modal.onClose = () => {
@@ -458,6 +460,7 @@ export default class FantasyCalendarView extends ItemView {
                                       ?.parent ?? "/"
                                 : "/";
 
+                            console.log('this the problem?')
                             const date = `${event.date.year}-${
                                 event.date.month + 1
                             }-${event.date.day}`;

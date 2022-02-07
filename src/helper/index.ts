@@ -1,5 +1,6 @@
 import { Events, Notice } from "obsidian";
 import type FantasyCalendar from "src/main";
+import dayjs from "dayjs";
 
 import { dateString, wrap } from "src/utils/functions";
 import type {
@@ -61,11 +62,12 @@ export class DayHelper {
         return this.month.calendar;
     }
     get date() {
-        return {
-            day: this.number,
-            month: this.month.number,
-            year: this.year
-        };
+        return new Date(this.year + "-" + this.month.number + "-" + this.number);
+        // return {
+        //     day: this.number,
+        //     month: this.month.number,
+        //     year: this.year
+        // };
     }
     get events(): Event[] {
         return this.calendar.getEventsOnDate(this.date);
@@ -167,39 +169,22 @@ export default class CalendarHelper extends Events {
         day: null
     };
 
-    getEventsOnDate(date: CurrentCalendarData) {
+    getEventsOnDate(date: Date) {
         const events = this.object.events.filter((e) => {
-            if (!e.date.day) return false;
-            if (!e.end) {
-                e.end = { ...e.date };
-            }
-            const start = { ...e.date };
-            if (start.year > date.year) return false;
-            const end = { ...e.end };
-            if (start.month == undefined) end.month = start.month = date.month;
-            if (start.year == undefined) end.year = start.year = date.year;
-
-            const daysBeforeStart = this.daysBeforeDate(start);
-            const daysBeforeDate = this.daysBeforeDate(date);
-            if (end.year > date.year) {
-                return daysBeforeDate >= daysBeforeStart;
-            }
-
-            const daysBeforeEnd = this.daysBeforeDate(end);
-            return (
-                daysBeforeDate >= daysBeforeStart &&
-                daysBeforeEnd >= daysBeforeDate
-            );
+            const eventDate = dayjs(e.date);
+            //end dates: handle
+            return eventDate.isSame(date, 'day');
         });
 
-        events.sort((a, b) => {
-            if (!a.end) return 0;
-            if (!b.end) return -1;
-            if (this.areDatesEqual(a.date, b.date)) {
-                return this.daysBeforeDate(b.end) - this.daysBeforeDate(a.end);
-            }
-            return this.daysBeforeDate(a.date) - this.daysBeforeDate(b.date);
-        });
+        // events.sort((a, b) => {
+        //     if (!a.end) return 0;
+        //     if (!b.end) return -1;
+        //     if (this.areDatesEqual(a.date, b.date)) {
+        //         return this.daysBeforeDate(b.end) - this.daysBeforeDate(a.end);
+        //     }
+        //     return this.daysBeforeDate(a.date) - this.daysBeforeDate(b.date);
+        // });
+        //TODO sort by time
 
         return events;
     }
