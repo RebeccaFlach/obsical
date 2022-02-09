@@ -54,6 +54,7 @@ declare module "obsidian" {
     }
 }
 
+
 export default class FantasyCalendarView extends ItemView {
     oauth2Client: any;
     dropdownEl: HTMLDivElement;
@@ -271,7 +272,7 @@ export default class FantasyCalendarView extends ItemView {
                 }
                 menu.addItem((item) => {
                     item.setTitle("Set as Today").onClick(() => {
-                        this.calendar.current = day.date;
+                        // this.calendar.current = day.date;
 
                         this.helper.current.day = day.number;
 
@@ -333,16 +334,25 @@ export default class FantasyCalendarView extends ItemView {
                         events.map((event, i) => {
                             let formatted = {
                                 name: event.summary,
-                                // date: new Date(),
-                                description: '',
-                                id: '',
-                                note: '',
-                                category: null
-
+                                date: new Date(event.start.dateTime),
+                                description: event.description,
+                                id: event.id,
+                                // note: '',
+                                category: null,
+                                end: new Date(event.end.dateTime),
                             } as Event;
                             
-                          console.log(event);
+                        //   console.log(event);
+                          console.log(formatted)
+                            this.calendar.events.push(formatted);
                         });
+                        this.plugin.saveSettings();
+
+                        this._app.$set({
+                            calendar: this.helper
+                        });
+
+                        this.triggerHelperEvent("day-update");
                       } else {
                         console.log('No upcoming events found.');
                       }
@@ -461,7 +471,8 @@ export default class FantasyCalendarView extends ItemView {
                                 : "/";
 
                             console.log('this the problem?')
-                            const date = `${event.date.year}-${
+                            
+                            const date = `${event.date.getFullYear()}-${
                                 event.date.month + 1
                             }-${event.date.day}`;
 

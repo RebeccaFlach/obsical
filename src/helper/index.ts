@@ -62,7 +62,7 @@ export class DayHelper {
         return this.month.calendar;
     }
     get date() {
-        return new Date(this.year + "-" + this.month.number + "-" + this.number);
+        return new Date(this.year + "-" + (this.month.number + 1) + "-" + this.number);
         // return {
         //     day: this.number,
         //     month: this.month.number,
