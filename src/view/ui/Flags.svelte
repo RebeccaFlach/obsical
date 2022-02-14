@@ -7,7 +7,7 @@
     export let events: Event[] = [];
     export let categories: EventCategory[];
     export let dayView: boolean = false;
-    export let date: CurrentCalendarData;
+    export let date: CurrentCalendarData = null;
     export let calendar: CalendarHelper;
 
     $: events = events;

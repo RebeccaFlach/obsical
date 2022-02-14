@@ -14,7 +14,6 @@
     export let dayView: boolean = false;
     export let yearView: boolean = false;
     export let calendar: CalendarHelper;
-    export let moons: boolean;
     export let displayDayNumber: boolean;
     export let displayWeeks: boolean;
 
@@ -23,14 +22,11 @@
     }
 
     const dayViewStore = writable(dayView);
-    const moonStore = writable(moons);
     const calendarStore = writable(calendar);
     setContext("dayView", dayViewStore);
-    setContext("displayMoons", moonStore);
     setContext("calendar", calendarStore);
 
     $: dayViewStore.set(dayView);
-    $: moonStore.set(moons);
     $: calendarStore.set(calendar);
 
     calendar.on("month-update", () => {
@@ -222,10 +218,10 @@
         margin: 1rem 0;
     }
 
-    :global(.moon-container) {
+    /* :global(.moon-container) {
         display: flex;
         flex-flow: row wrap;
         align-items: center;
         justify-content: center;
-    }
+    } */
 </style>

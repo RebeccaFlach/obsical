@@ -36,6 +36,9 @@ import { confirmWithModal } from "src/settings/modals/confirm";
 import { daysBetween } from "src/utils/functions";
 import { MODIFIER_KEY } from "../main";
 
+import { google } from 'googleapis';
+import _ from 'underscore'
+
 addIcon(
     VIEW_TYPE,
     `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" data-prefix="far" data-icon="calendar" class="svg-inline--fa fa-calendar fa-w-14" role="img" viewBox="0 0 448 512"><path xmlns="http://www.w3.org/2000/svg" fill="currentColor" d="M400 64h-48V12c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v52H160V12c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v52H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V160h352v298c0 3.3-2.7 6-6 6z"/><path fill="currentColor" d="M18.32 255.78L192 223.96l-91.28 68.69c-10.08 10.08-2.94 27.31 11.31 27.31h222.7c-9.44-26.4-14.73-54.47-14.73-83.38v-42.27l-119.73-87.6c-23.82-15.88-55.29-14.01-77.06 4.59L5.81 227.64c-12.38 10.33-3.45 30.42 12.51 28.14zm556.87 34.1l-100.66-50.31A47.992 47.992 0 0 1 448 196.65v-36.69h64l28.09 22.63c6 6 14.14 9.37 22.63 9.37h30.97a32 32 0 0 0 28.62-17.69l14.31-28.62a32.005 32.005 0 0 0-3.02-33.51l-74.53-99.38C553.02 4.7 543.54 0 533.47 0H296.02c-7.13 0-10.7 8.57-5.66 13.61L352 63.96 292.42 88.8c-5.9 2.95-5.9 11.36 0 14.31L352 127.96v108.62c0 72.08 36.03 139.39 96 179.38-195.59 6.81-344.56 41.01-434.1 60.91C5.78 478.67 0 485.88 0 494.2 0 504 7.95 512 17.76 512h499.08c63.29.01 119.61-47.56 122.99-110.76 2.52-47.28-22.73-90.4-64.64-111.36zM489.18 66.25l45.65 11.41c-2.75 10.91-12.47 18.89-24.13 18.26-12.96-.71-25.85-12.53-21.52-29.67z" style="&#10;    transform: scale(0.4125) translate(50%, 95%);&#10;"/></svg>`
@@ -52,7 +55,9 @@ declare module "obsidian" {
     }
 }
 
+
 export default class FantasyCalendarView extends ItemView {
+    oauth2Client: any;
     dropdownEl: HTMLDivElement;
     helper: CalendarHelper;
     noCalendarEl: HTMLDivElement;
@@ -66,7 +71,6 @@ export default class FantasyCalendarView extends ItemView {
         return !("collapse" in this.root);
     }
     yearView: boolean = false;
-    moons: boolean = true;
     calendar: Calendar;
     /* calendarDropdownEl: HTMLDivElement; */
     protected _app: CalendarUI;
@@ -76,6 +80,12 @@ export default class FantasyCalendarView extends ItemView {
         public options: { calendar?: Calendar; full?: boolean } = {}
     ) {
         super(leaf);
+        this.oauth2Client = new google.auth.OAuth2(
+            CLIENT_ID,
+            CLIENT_SECRET,
+            'urn:ietf:wg:oauth:2.0:oob' //copy paste instead of callback url
+        );
+        this.oauth2Client.setCredentials(JSON.parse(window.localStorage.getItem('tokens')));
 
         this.registerEvent(
             this.plugin.app.workspace.on("obsicals-updated", () => {
@@ -94,6 +104,7 @@ export default class FantasyCalendarView extends ItemView {
         /* window.view = this; */
     }
     updateCalendars() {
+        console.log('update calendars')
         if (!this.updateMe) {
             this.updateMe = true;
             return;
@@ -122,6 +133,7 @@ export default class FantasyCalendarView extends ItemView {
     update(calendar: Calendar) {
         this.calendar = calendar;
         this.helper.update(this.calendar);
+        console.log(calendar)
 
         this.registerCalendarInterval();
 
@@ -175,7 +187,6 @@ export default class FantasyCalendarView extends ItemView {
 
         this.calendar = calendar;
 
-        this.moons = this.calendar.static.displayMoons;
         this.dayNumber = this.calendar.static.displayDayNumber;
         this.helper = new CalendarHelper(this.calendar, this.plugin);
 
@@ -183,7 +194,7 @@ export default class FantasyCalendarView extends ItemView {
 
         this.build();
     }
-    createEventForDay(date: CurrentCalendarData) {
+    createEventForDay(date: Date) {
         const modal = new CreateEventModal(this.app, this.calendar, null, date);
 
         modal.onClose = () => {
@@ -206,6 +217,7 @@ export default class FantasyCalendarView extends ItemView {
         this.updateCalendars();
     }
     build() {
+        console.log('building')
         this.contentEl.empty();
         this._app = new CalendarUI({
             target: this.contentEl,
@@ -213,7 +225,6 @@ export default class FantasyCalendarView extends ItemView {
                 calendar: this.helper,
                 fullView: this.full,
                 yearView: this.yearView,
-                moons: this.moons,
                 displayWeeks: this.helper.displayWeeks,
                 displayDayNumber: this.dayNumber
             }
@@ -262,7 +273,7 @@ export default class FantasyCalendarView extends ItemView {
                 }
                 menu.addItem((item) => {
                     item.setTitle("Set as Today").onClick(() => {
-                        this.calendar.current = day.date;
+                        // this.calendar.current = day.date;
 
                         this.helper.current.day = day.number;
 
@@ -297,19 +308,78 @@ export default class FantasyCalendarView extends ItemView {
                     this.plugin.saveSettings();
                 });
             });
+        
+            menu.addItem((item) => {
+                item.setTitle("Import");
+                
+                const listEvents = () => {
+                    console.log('listing events')
+                    console.log(this.calendar.events)
+                    const calendar = google.calendar({version: 'v3', auth: this.oauth2Client});
+                    // calendar.events.get({
+                    //     calendarId: 'primary',
+                    //     eventId: ''
+                    // })
+                    calendar.events.list({
+                      calendarId: 'primary',
+                      timeMin: (new Date()).toISOString(),
+                      maxResults: 10,
+                      singleEvents: true,
+                      orderBy: 'startTime',
+                    }, (err, res) => {
+                      if (err) return console.log('The API returned an error: ' + err);
+                      const events = res.data.items;
+                      if (events.length) {
+                        _(events).each((event, i) => {
+                            const formatted =  {
+                                name: event.summary,
+                                date: new Date(event.start.dateTime),
+                                description: event.description,
+                                id: event.id,
+                                // note: '',
+                                category: null,
+                                end: new Date(event.end.dateTime),
+                            } as Event;
+
+                            if (!_(this.calendar.events).find((e) => e.id === formatted.id))
+                                this.calendar.events.push(formatted);
+                        });
+                        
+
+                        this.plugin.saveSettings();
+
+                        this._app.$set({
+                            calendar: this.helper
+                        });
+
+                        this.triggerHelperEvent("day-update");
+                      } else {
+                        console.log('No upcoming events found.');
+                      }
+                    });
+                  }
+
+                item.onClick(() => {
+                    listEvents();
+                //     const refresh = JSON.parse(window.localStorage.getItem('tokens')).refresh_token;
+                //     this.oauth2Client.setCredentials({
+                //         this.oauth2Client.
+                //     this.oauth2Client.getToken(refresh).then(({tokens}) => {
+                       
+                //         console.log(tokens)
+                //         this.oauth2Client.setCredentials(tokens);
+                //         window.localStorage.setItem('tokens', JSON.stringify(tokens));
+                //         listEvents();
+                //     })
+                //    listEvents();
+                });
+            });
             menu.addItem((item) => {
                 item.setTitle(
                     `Open ${this.yearView ? "Month" : "Year"}`
                 ).onClick(() => {
                     this.yearView = !this.yearView;
                     this._app.$set({ yearView: this.yearView });
-                });
-            });
-            menu.addItem((item) => {
-                item.setTitle(
-                    this.moons ? "Hide Moons" : "Display Moons"
-                ).onClick(() => {
-                    this.toggleMoons();
                 });
             });
             menu.addItem((item) => {
@@ -411,7 +481,9 @@ export default class FantasyCalendarView extends ItemView {
                                       ?.parent ?? "/"
                                 : "/";
 
-                            const date = `${event.date.year}-${
+                            console.log('this the problem?')
+                            
+                            const date = `${event.date.getFullYear()}-${
                                 event.date.month + 1
                             }-${event.date.day}`;
 
@@ -589,10 +661,6 @@ export default class FantasyCalendarView extends ItemView {
         };
 
         modal.open();
-    }
-    toggleMoons() {
-        this.moons = !this.moons;
-        this._app.$set({ moons: this.moons });
     }
 
     async onClose() {}

@@ -1,6 +1,7 @@
 import { Events, Notice } from "obsidian";
 import type FantasyCalendar from "src/main";
-import { MOON_PHASES, Phase } from "src/utils/constants";
+import dayjs from "dayjs";
+
 import { dateString, wrap } from "src/utils/functions";
 import type {
     Calendar,
@@ -8,7 +9,6 @@ import type {
     Month,
     Event,
     LeapDay,
-    Moon
 } from "../@types";
 
 export class MonthHelper {
@@ -62,11 +62,12 @@ export class DayHelper {
         return this.month.calendar;
     }
     get date() {
-        return {
-            day: this.number,
-            month: this.month.number,
-            year: this.year
-        };
+        return new Date(this.year + "-" + (this.month.number + 1) + "-" + this.number);
+        // return {
+        //     day: this.number,
+        //     month: this.month.number,
+        //     year: this.year
+        // };
     }
     get events(): Event[] {
         return this.calendar.getEventsOnDate(this.date);
@@ -106,10 +107,6 @@ export class DayHelper {
             this.calendar.displayed.year == this.calendar.viewing.year &&
             this.calendar.displayed.month == this.calendar.viewing.month
         );
-    }
-
-    get moons() {
-        return this.calendar.getMoonsForDate(this.date);
     }
 
     constructor(public month: MonthHelper, public number: number) {}
@@ -172,39 +169,22 @@ export default class CalendarHelper extends Events {
         day: null
     };
 
-    getEventsOnDate(date: CurrentCalendarData) {
+    getEventsOnDate(date: Date) {
         const events = this.object.events.filter((e) => {
-            if (!e.date.day) return false;
-            if (!e.end) {
-                e.end = { ...e.date };
-            }
-            const start = { ...e.date };
-            if (start.year > date.year) return false;
-            const end = { ...e.end };
-            if (start.month == undefined) end.month = start.month = date.month;
-            if (start.year == undefined) end.year = start.year = date.year;
-
-            const daysBeforeStart = this.daysBeforeDate(start);
-            const daysBeforeDate = this.daysBeforeDate(date);
-            if (end.year > date.year) {
-                return daysBeforeDate >= daysBeforeStart;
-            }
-
-            const daysBeforeEnd = this.daysBeforeDate(end);
-            return (
-                daysBeforeDate >= daysBeforeStart &&
-                daysBeforeEnd >= daysBeforeDate
-            );
+            const eventDate = dayjs(e.date);
+            //end dates: handle
+            return eventDate.isSame(date, 'day');
         });
 
-        events.sort((a, b) => {
-            if (!a.end) return 0;
-            if (!b.end) return -1;
-            if (this.areDatesEqual(a.date, b.date)) {
-                return this.daysBeforeDate(b.end) - this.daysBeforeDate(a.end);
-            }
-            return this.daysBeforeDate(a.date) - this.daysBeforeDate(b.date);
-        });
+        // events.sort((a, b) => {
+        //     if (!a.end) return 0;
+        //     if (!b.end) return -1;
+        //     if (this.areDatesEqual(a.date, b.date)) {
+        //         return this.daysBeforeDate(b.end) - this.daysBeforeDate(a.end);
+        //     }
+        //     return this.daysBeforeDate(a.date) - this.daysBeforeDate(b.date);
+        // });
+        //TODO sort by time
 
         return events;
     }
@@ -577,40 +557,5 @@ export default class CalendarHelper extends Events {
         );
     }
 
-    /** Moons */
-    get moons() {
-        return this.data.moons;
-    }
-
-    getMoonsForDate(date: CurrentCalendarData): Array<[Moon, Phase]> {
-        const phases: Array<[Moon, Phase]> = [];
-
-        const month = this.getMonth(date.month, date.year);
-
-        const day = month.days[date.day - 1];
-
-        const daysBefore =
-            this.totalDaysBeforeYear(date.year, true) +
-            this.daysBeforeMonth(month, true) +
-            day.number -
-            1;
-        for (let moon of this.moons) {
-            const { offset, cycle } = moon;
-            const granularity = 24;
-
-            let data = (daysBefore - offset) / cycle;
-            let position = data - Math.floor(data);
-
-            const phase = (position * granularity) % granularity;
-
-            const options = MOON_PHASES[granularity];
-
-            phases.push([
-                moon,
-                options[wrap(Math.round(phase), options.length)]
-            ]);
-        }
-
-        return phases;
-    }
+    
 }

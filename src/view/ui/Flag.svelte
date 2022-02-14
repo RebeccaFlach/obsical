@@ -2,7 +2,6 @@
     import { Platform, setIcon } from "obsidian";
 
     import type { CurrentCalendarData, Event, EventCategory } from "src/@types";
-    import { DEFAULT_CATEGORY_COLOR } from "src/utils/constants";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -17,17 +16,18 @@
     $: {
         if (event.end != undefined && !dayView) {
             multi = true;
-            start =
-                date.day === event.date.day &&
-                (event.date.month == undefined ||
-                    date.month == event.date.month) &&
-                (event.date.year == undefined || date.year === event.date.year);
-            first = start || date.day == 1;
-            end =
-                date.day === event.end.day &&
-                (event.end.month == undefined ||
-                    date.month == event.end.month) &&
-                (event.end.year == undefined || date.year === event.end.year);
+            start = true
+                // date.day === event.date.day &&
+                // (event.date.month == undefined ||
+                //     date.month == event.date.month) &&
+                // (event.date.year == undefined || date.year === event.date.year);
+            // first = start || date.day == 1;
+            first = true;
+            end = true
+                // date.day === event.end.day &&
+                // (event.end.month == undefined ||
+                //     date.month == event.end.month) &&
+                // (event.end.year == undefined || date.year === event.end.year);
             if (start && end) {
                 multi = false;
                 start = false;
@@ -40,11 +40,11 @@
 
     let color =
         categories.find((c) => c.id == event.category)?.color ??
-        DEFAULT_CATEGORY_COLOR;
+        "#808080";
 
     $: color =
         categories.find((c) => c.id == event.category)?.color ??
-        DEFAULT_CATEGORY_COLOR;
+        "#808080";
 
     const meta = Platform.isMacOS ? "Meta" : "Control";
 

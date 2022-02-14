@@ -1,4 +1,5 @@
 import type { CurrentCalendarData, LeapDay, Month } from "../@types";
+import dayjs from "dayjs";
 
 export function daysBetween(date1: Date, date2: Date) {
     const d1 = window.moment(date1);
@@ -66,58 +67,15 @@ export function ordinal(i: number) {
     return i + "th";
 }
 export function dateString(
-    date: CurrentCalendarData,
+    date: Date,
     months: Month[],
-    end?: CurrentCalendarData
+    end?: Date
 ) {
-    if (!date || date.day == undefined) {
+    if (!date) {
         return "";
     }
-    const { day, month, year } = date;
-    if (month != undefined && !months[month]) return "Invalid Date";
 
-    if (end && end.day) {
-        const endDay = end.day;
-        const endMonth = end.month;
-        const endYear = end.year;
-
-        if (
-            endMonth != undefined &&
-            endYear != undefined &&
-            month != undefined &&
-            year != undefined
-        ) {
-            if (year != endYear) {
-                return `${months[month].name} ${ordinal(day)}, ${year} - ${
-                    months[endMonth].name
-                } ${ordinal(endDay)}, ${endYear}`;
-            }
-            if (endMonth == month) {
-                return `${months[month].name} ${ordinal(day)}-${ordinal(
-                    endDay
-                )}, ${year}`;
-            }
-            if (month != undefined && year != undefined) {
-                return `${months[month].name} ${ordinal(day)}-${
-                    months[endMonth].name
-                } ${ordinal(endDay)}, ${year}`;
-            }
-            if (month != undefined) {
-                return `${months[month].name} ${ordinal(day)}-${
-                    months[endMonth].name
-                } ${ordinal(endDay)} of every year`;
-            }
-            return `${ordinal(day)}-${ordinal(endDay)} of every month`;
-        }
-    }
-
-    if (month != undefined && year != undefined) {
-        return `${months[month].name} ${ordinal(day)}, ${year}`;
-    }
-    if (month != undefined) {
-        return `${months[month].name} ${ordinal(day)} of every year`;
-    }
-    return `${ordinal(day)} of every month`;
+   return dayjs(date).toString(); //TODO format nicely
 }
 function LeapDay(leapday: any, LeapDay: any) {
     throw new Error("Function not implemented.");
