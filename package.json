@@ -54,6 +54,7 @@
     "dependencies": {
         "@popperjs/core": "^2.11.2",
         "dayjs": "^1.10.7",
-        "googleapis": "^92.0.0"
+        "googleapis": "^92.0.0",
+        "underscore": "^1.13.2"
     }
 }

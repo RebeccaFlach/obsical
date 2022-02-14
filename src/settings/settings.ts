@@ -176,8 +176,7 @@ export default class FantasyCalendarSettings extends PluginSettingTab {
               if (events.length) {
                 console.log('Upcoming 10 events:');
                 events.map((event, i) => {
-                  const start = event.start.dateTime || event.start.date;
-                  console.log(`${start} - ${event.summary}`);
+                  console.log(event);
                 });
               } else {
                 console.log('No upcoming events found.');
@@ -194,12 +193,14 @@ export default class FantasyCalendarSettings extends PluginSettingTab {
             console.log('login url')
             console.log(url);
             window.location.assign(url);
+            
             // const {tokens} = await oauth2Client.getToken(code)
             // oauth2Client.setCredentials(tokens);
         }
 
         const login = () => {
             console.log(code);
+            
             oauth2Client.getToken(code).then(({tokens}) => {
                 console.log(tokens)
                 oauth2Client.setCredentials(tokens);

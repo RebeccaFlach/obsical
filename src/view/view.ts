@@ -37,6 +37,7 @@ import { daysBetween } from "src/utils/functions";
 import { MODIFIER_KEY } from "../main";
 
 import { google } from 'googleapis';
+import _ from 'underscore'
 
 addIcon(
     VIEW_TYPE,
@@ -329,10 +330,8 @@ export default class FantasyCalendarView extends ItemView {
                       if (err) return console.log('The API returned an error: ' + err);
                       const events = res.data.items;
                       if (events.length) {
-                        
-                        console.log('Upcoming 10 events:');
-                        events.map((event, i) => {
-                            let formatted = {
+                        _(events).each((event, i) => {
+                            const formatted =  {
                                 name: event.summary,
                                 date: new Date(event.start.dateTime),
                                 description: event.description,
@@ -341,11 +340,12 @@ export default class FantasyCalendarView extends ItemView {
                                 category: null,
                                 end: new Date(event.end.dateTime),
                             } as Event;
-                            
-                        //   console.log(event);
-                          console.log(formatted)
-                            this.calendar.events.push(formatted);
+
+                            if (!_(this.calendar.events).find((e) => e.id === formatted.id))
+                                this.calendar.events.push(formatted);
                         });
+                        
+
                         this.plugin.saveSettings();
 
                         this._app.$set({
@@ -360,7 +360,18 @@ export default class FantasyCalendarView extends ItemView {
                   }
 
                 item.onClick(() => {
-                   listEvents();
+                    listEvents();
+                //     const refresh = JSON.parse(window.localStorage.getItem('tokens')).refresh_token;
+                //     this.oauth2Client.setCredentials({
+                //         this.oauth2Client.
+                //     this.oauth2Client.getToken(refresh).then(({tokens}) => {
+                       
+                //         console.log(tokens)
+                //         this.oauth2Client.setCredentials(tokens);
+                //         window.localStorage.setItem('tokens', JSON.stringify(tokens));
+                //         listEvents();
+                //     })
+                //    listEvents();
                 });
             });
             menu.addItem((item) => {
