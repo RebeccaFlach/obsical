@@ -6,7 +6,8 @@ import {
     TextComponent,
     DropdownComponent,
     TextAreaComponent,
-    TFile
+    TFile,
+    normalizePath
 } from "obsidian";
 import type { Calendar, Event } from "../../@types";
 
@@ -76,6 +77,16 @@ export class CreateEventModal extends Modal {
                             return;
                         }
 
+
+                        if (!this.event.note){
+                            const note = normalizePath(`${this.event.name}.md`);
+                            this.app.vault.create(
+                                note,
+                                `CONTENT`
+                            )
+
+                            this.event.note = note;
+                        }
                         this.event.end = this.event.end || this.event.date;
 
                         //TODO HANDLE ILLEGAL DATES
