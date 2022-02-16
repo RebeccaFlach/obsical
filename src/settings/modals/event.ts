@@ -11,7 +11,7 @@ import {
 } from "obsidian";
 import type { Calendar, Event } from "../../@types";
 
-import { dateString, nanoid } from "../../utils/functions";
+import { createNote, dateString, nanoid } from "../../utils/functions";
 
 import PathSuggestionModal from "../../suggester/path";
 import { confirmWithModal } from "./confirm";
@@ -78,15 +78,9 @@ export class CreateEventModal extends Modal {
                         }
 
 
-                        if (!this.event.note){
-                            const note = normalizePath(`${this.event.name}.md`);
-                            this.app.vault.create(
-                                note,
-                                `CONTENT`
-                            )
-
-                            this.event.note = note;
-                        }
+                        if (!this.event.note)
+                            this.event.note = createNote(this.event.name, this.app);
+                        
                         this.event.end = this.event.end || this.event.date;
 
                         //TODO HANDLE ILLEGAL DATES

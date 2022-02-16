@@ -33,7 +33,7 @@ export const FULL_VIEW = "FANTASY_CALENDAR_FULL_VIEW";
 
 import CalendarUI from "./ui/Calendar.svelte";
 import { confirmWithModal } from "src/settings/modals/confirm";
-import { daysBetween } from "src/utils/functions";
+import { createNote, daysBetween } from "src/utils/functions";
 import { MODIFIER_KEY } from "../main";
 
 import { google } from 'googleapis';
@@ -336,13 +336,15 @@ export default class FantasyCalendarView extends ItemView {
                                 date: new Date(event.start.dateTime),
                                 description: event.description,
                                 id: event.id,
-                                // note: '',
+                                note: createNote(event.summary, this.app),
                                 category: null,
                                 end: new Date(event.end.dateTime),
                             } as Event;
 
                             if (!_(this.calendar.events).find((e) => e.id === formatted.id))
                                 this.calendar.events.push(formatted);
+                                
+                            
                         });
                         
 

@@ -1,5 +1,6 @@
 import type { CurrentCalendarData, LeapDay, Month } from "../@types";
 import dayjs from "dayjs";
+import { App, normalizePath } from "obsidian";
 
 export function daysBetween(date1: Date, date2: Date) {
     const d1 = window.moment(date1);
@@ -29,6 +30,17 @@ export function nanoid(len: number) {
             v = c == "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
+}
+
+export function createNote(name: string, app: App): string {
+    const note = normalizePath(`${name}.md`);
+    
+    app.vault.create(
+        note,
+        `CONTENT`
+    )
+
+    return note; 
 }
 
 export function getIntervalDescription(leapday: LeapDay) {
