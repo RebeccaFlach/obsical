@@ -333,12 +333,13 @@ export default class FantasyCalendarView extends ItemView {
                         _(events).each((event, i) => {
                             const formatted =  {
                                 name: event.summary,
-                                date: new Date(event.start.dateTime),
+                                date: new Date(event.start.dateTime || event.start.date),
                                 description: event.description,
                                 id: event.id,
                                 category: null,
                                 end: new Date(event.end.dateTime),
                             } as Event;
+                            
 
                             if (!_(this.calendar.events).find((e) => e.id === formatted.id)){
                                 formatted.note = createNote(event.summary, this.app);
