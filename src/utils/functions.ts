@@ -1,4 +1,4 @@
-import type { CurrentCalendarData, LeapDay, Month } from "../@types";
+import type { CurrentCalendarData, LeapDay, Month, Event } from "../@types";
 import dayjs from "dayjs";
 import { App, normalizePath } from "obsidian";
 
@@ -32,12 +32,22 @@ export function nanoid(len: number) {
     });
 }
 
-export function createNote(name: string, app: App): string {
+export function createNote(name: string, app: App, data:Event): string {
     const note = normalizePath(`${name}.md`);
     
     app.vault.create(
         note,
-        `CONTENT`
+        `
+---
+event-start: ${data.date}
+event-end: ${data.end}
+---
+
+# ${data.name}
+
+## ${data.date} - ${data.end}
+
+${data.description}`
     )
 
     return note; 
