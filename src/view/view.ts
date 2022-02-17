@@ -56,6 +56,7 @@ declare module "obsidian" {
 }
 
 
+
 export default class FantasyCalendarView extends ItemView {
     oauth2Client: any;
     dropdownEl: HTMLDivElement;
@@ -337,7 +338,7 @@ export default class FantasyCalendarView extends ItemView {
                                 description: event.description,
                                 id: event.id,
                                 category: null,
-                                end: new Date(event.end.dateTime),
+                                end: new Date(event.end.dateTime || event.end.date),
                                 allDay: !event.start.dateTime,
                             } as Event;
                             
