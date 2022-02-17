@@ -100,6 +100,7 @@ export interface Event {
     id: string;
     note: string;
     category: string;
+    allDay?: boolean;
 }
 
 export interface Era {

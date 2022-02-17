@@ -338,11 +338,12 @@ export default class FantasyCalendarView extends ItemView {
                                 id: event.id,
                                 category: null,
                                 end: new Date(event.end.dateTime),
+                                allDay: !event.start.dateTime,
                             } as Event;
                             
 
                             if (!_(this.calendar.events).find((e) => e.id === formatted.id)){
-                                formatted.note = createNote(event.summary, this.app);
+                                formatted.note = createNote(event.summary, this.app, formatted);
                                 this.calendar.events.push(formatted);
                             } 
                             

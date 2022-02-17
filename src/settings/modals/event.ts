@@ -79,7 +79,7 @@ export class CreateEventModal extends Modal {
 
 
                         if (!this.event.note)
-                            this.event.note = createNote(this.event.name, this.app);
+                            this.event.note = createNote(this.event.name, this.app, this.event);
                         
                         this.event.end = this.event.end || this.event.date;
 

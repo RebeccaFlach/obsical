@@ -34,7 +34,29 @@ export function nanoid(len: number) {
 
 export function createNote(name: string, app: App, data:Event): string {
     const note = normalizePath(`${name}.md`);
-    
+    const date = dayjs(data.date);
+    const dateFormat = 'dddd, MMMM D YYYY ';
+    const timeFormat = 'h:mm a'
+    const end = dayjs(data.end);
+    // const formattedDate = date.format(data.allDay ? "YYYY-MM-DD" : "YYYY-MM-DD")
+    let formattedDate;
+    if (data.allDay) {
+        formattedDate = date.format(dateFormat);
+        if (data.end)
+            formattedDate += (' - ' + end.format(dateFormat))
+    }
+    else {
+        if (data.end){
+            if (date.isSame(end, 'day'))
+                formattedDate = `## ${date.format(dateFormat)} \n ### ${date.format(timeFormat)} - ${end.format(timeFormat)}`;
+            else 
+                formattedDate = `## ${date.format(dateFormat + timeFormat)} - ${end.format(dateFormat + timeFormat)}`;
+        }
+        else 
+            formattedDate = `## ${date.format(dateFormat)} \n ### ${date.format(timeFormat)}`
+    }
+    // all day: DATE - DATE
+    // time, same day
     app.vault.create(
         note,
         `
@@ -45,7 +67,7 @@ event-end: ${data.end}
 
 # ${data.name}
 
-## ${data.date} - ${data.end}
+${formattedDate}
 
 ${data.description}`
     )
