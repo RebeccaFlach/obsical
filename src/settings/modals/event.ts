@@ -16,6 +16,8 @@ import { createNote, dateString, nanoid } from "../../utils/functions";
 import PathSuggestionModal from "../../suggester/path";
 import { confirmWithModal } from "./confirm";
 
+import _ from 'underscore';
+
 export class CreateEventModal extends Modal {
     saved = false;
     event: Event = {
@@ -84,7 +86,6 @@ export class CreateEventModal extends Modal {
                         this.event.end = this.event.end || this.event.date;
 
                         //TODO HANDLE ILLEGAL DATES
-                        
                         this.saved = true;
                         this.close();
                     });
@@ -159,7 +160,9 @@ export class CreateEventModal extends Modal {
             .setPlaceholder("Day")
             .setValue(`${field.getDate()}`)
             .onChange((v) => {
-                field.setDate(Number(v))
+                // let date = Number(v);
+                // date = _.min(date, this.event.date.getMonth())
+                field.setDate(Number(v) || 1)
                 this.buildDateString();
             });
         day.inputEl.setAttr("type", "number");
@@ -183,9 +186,12 @@ export class CreateEventModal extends Modal {
             )
             .onChange((v) => {
                 if (v === "select") field.setMonth(new Date().getMonth());
+
                 const index = this.calendar.static.months.find(
                     (m) => m.name == v
                 );
+                console.log(index)
+                console.log(this.calendar.static.months.indexOf(index))
                 field.setMonth(this.calendar.static.months.indexOf(index));
                 this.buildDateString();
             });
