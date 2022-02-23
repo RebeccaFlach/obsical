@@ -40,19 +40,24 @@ export function createNote(name: string, app: App, data:Event): string {
     const end = dayjs(data.end);
     // const formattedDate = date.format(data.allDay ? "YYYY-MM-DD" : "YYYY-MM-DD")
     let formattedDate;
+    // allDay dates never hold time, so an end date can/should only occur if the allDay date spans multiple days
     if (data.allDay) {
-        formattedDate = date.format(dateFormat);
+        // Reminder: ## is for a header in markdown
+        formattedDate = `## ${date.format(dateFormat)}`;
         if (data.end)
-            formattedDate += (' - ' + end.format(dateFormat))
-    }
+            formattedDate += (' - ' + end.format(dateFormat));
+    } 
     else {
         if (data.end){
             if (date.isSame(end, 'day'))
+                // End date is start date? Date only needed once, put time in a lower-level heading
                 formattedDate = `## ${date.format(dateFormat)} \n ### ${date.format(timeFormat)} - ${end.format(timeFormat)}`;
             else 
+                // Different start and end dates but not all day? Prioritize both time and date in the heading
                 formattedDate = `## ${date.format(dateFormat + timeFormat)} - ${end.format(dateFormat + timeFormat)}`;
         }
         else 
+            // No end date and time? Prioritize date and put time in lower-level heading
             formattedDate = `## ${date.format(dateFormat)} \n ### ${date.format(timeFormat)}`
     }
     // all day: DATE - DATE
