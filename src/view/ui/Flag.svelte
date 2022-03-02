@@ -4,6 +4,7 @@
     import type { CurrentCalendarData, Event, EventCategory } from "src/@types";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
+    import dayjs from 'dayjs';
 
     export let event: Event;
     export let date: CurrentCalendarData;
@@ -51,6 +52,7 @@
     const note = (node: HTMLElement) => {
         setIcon(node, "note-glyph");
     };
+
 </script>
 
 <div
@@ -79,11 +81,11 @@
 >
     <div class="flag-content">
         <span class:clamp={!dayView} class:day-view={dayView}>
-            {event.name}</span
-        >
-        {#if event.note}
-            <div class="note" use:note />
-        {/if}
+            {event.name}
+            </span>
+        
+        <div class="time">{dayjs(event.date).format('hh:mm a') }</div>
+        
     </div>
 </div>
 
@@ -92,6 +94,7 @@
         cursor: pointer;
         position: relative;
         padding-left: 0.125rem;
+        padding-right: 0.125rem;
         text-align: left;
         width: 100%;
 
@@ -117,7 +120,7 @@
         text-overflow: ellipsis;
     }
 
-    .note {
+    .time {
         display: flex;
         align-self: center;
     }
