@@ -74,7 +74,7 @@ event-end: ${data.end}
 
 ${formattedDate}
 
-${data.description}`
+${data.description || ''}`
     )
 
     return note; 
