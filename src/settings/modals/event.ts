@@ -6,25 +6,24 @@ import {
     TextComponent,
     DropdownComponent,
     TextAreaComponent,
-    TFile
+    TFile,
+    normalizePath
 } from "obsidian";
 import type { Calendar, Event } from "../../@types";
 
-import { dateString, nanoid } from "../../utils/functions";
+import { createNote, dateString, nanoid } from "../../utils/functions";
 
 import PathSuggestionModal from "../../suggester/path";
 import { confirmWithModal } from "./confirm";
+
+import _ from 'underscore';
 
 export class CreateEventModal extends Modal {
     saved = false;
     event: Event = {
         name: null,
         description: null,
-        date: {
-            month: null,
-            day: null,
-            year: null
-        },
+        date: new Date(),
         id: nanoid(6),
         note: null,
         category: null
@@ -45,7 +44,7 @@ export class CreateEventModal extends Modal {
         app: App,
         public calendar: Calendar,
         event?: Event,
-        date?: { month: number; day: number; year: number }
+        date?: Date
     ) {
         super(app);
         if (event) {
@@ -53,7 +52,7 @@ export class CreateEventModal extends Modal {
             this.editing = true;
         }
         if (date) {
-            this.event.date = { ...date };
+            this.event.date = date;
         }
         this.containerEl.addClass("obsical-create-event");
     }
@@ -80,44 +79,13 @@ export class CreateEventModal extends Modal {
                             return;
                         }
 
-                        if (this.event.end) {
-                            this.event.end = {
-                                year:
-                                    this.event.end.year ?? this.event.date.year,
-                                month:
-                                    this.event.end.month ??
-                                    this.event.date.month,
-                                day: this.event.end.day ?? this.event.date.day
-                            };
-                            const date = this.event.date;
-                            const end = this.event.end;
 
-                            const maxDays = Math.max(
-                                ...this.calendar.static.months.map(
-                                    (m) => m.length
-                                )
-                            );
+                        if (!this.event.note)
+                            this.event.note = createNote(this.event.name, this.app, this.event);
+                        
+                        this.event.end = this.event.end || this.event.date;
 
-                            // total days per year (does not need to be accurate)
-                            const totalDays =
-                                maxDays * this.calendar.static.months.length;
-
-                            const dateNumber =
-                                (date.year - 1) * totalDays +
-                                (date.month ?? -1) * maxDays +
-                                date.day;
-
-                            const endNumber =
-                                (end.year - 1) * totalDays +
-                                (end.month ?? -1) * maxDays +
-                                end.day;
-
-                            if (dateNumber > endNumber) {
-                                const temp = { ...this.event.end };
-                                this.event.end = { ...this.event.date };
-                                this.event.date = { ...temp };
-                            }
-                        }
+                        //TODO HANDLE ILLEGAL DATES
                         this.saved = true;
                         this.close();
                     });
@@ -155,16 +123,20 @@ export class CreateEventModal extends Modal {
         this.startDateEl = this.startEl.createDiv(
             "obsical-date-fields"
         );
-
+        
+        console.log('build start date');
+        console.log(this.event);
         this.buildDateFields(this.startDateEl, this.event.date);
     }
     buildEndDate() {
-        this.event.end = this.event.end ?? { ...this.event.date };
+        this.event.end = this.event.end || this.event.date ;
         this.endEl.empty();
         this.endEl.addClass("obsical-event-date");
         this.endEl.createSpan({ text: "End:" });
         this.endDateEl = this.endEl.createDiv("obsical-date-fields");
 
+        console.log('build end date');
+        console.log(this.event.end);
         this.buildDateFields(this.endDateEl, this.event.end);
     }
     buildDateString() {
@@ -178,14 +150,19 @@ export class CreateEventModal extends Modal {
         });
     }
     buildDateFields(el: HTMLElement, field = this.event.date) {
+        console.log(field)
+        if (!field) field = new Date();
+        console.log(field)
         el.empty();
         const dayEl = el.createDiv("obsical-date-field");
         dayEl.createEl("label", { text: "Day" });
         const day = new TextComponent(dayEl)
             .setPlaceholder("Day")
-            .setValue(`${field.day}`)
+            .setValue(`${field.getDate()}`)
             .onChange((v) => {
-                field.day = Number(v);
+                // let date = Number(v);
+                // date = _.min(date, this.event.date.getMonth())
+                field.setDate(Number(v) || 1)
                 this.buildDateString();
             });
         day.inputEl.setAttr("type", "number");
@@ -203,16 +180,19 @@ export class CreateEventModal extends Modal {
                 ])
             )
             .setValue(
-                field.month != undefined
-                    ? this.calendar.static.months[field.month].name
+                field.getMonth != undefined
+                    ? this.calendar.static.months[field.getMonth()].name
                     : "select"
             )
             .onChange((v) => {
-                if (v === "select") field.month = null;
+                if (v === "select") field.setMonth(new Date().getMonth());
+
                 const index = this.calendar.static.months.find(
                     (m) => m.name == v
                 );
-                field.month = this.calendar.static.months.indexOf(index);
+                console.log(index)
+                console.log(this.calendar.static.months.indexOf(index))
+                field.setMonth(this.calendar.static.months.indexOf(index));
                 this.buildDateString();
             });
 
@@ -220,12 +200,12 @@ export class CreateEventModal extends Modal {
         yearEl.createEl("label", { text: "Year" });
         const year = new TextComponent(yearEl)
             .setPlaceholder("Year")
-            .setValue(`${field.year}`)
+            .setValue(`${field.getFullYear()}`)
             .onChange((v) => {
                 if (!v || v == undefined) {
-                    field.year = undefined;
+                    field.setFullYear(undefined)
                 } else {
-                    field.year = Number(v);
+                    field.setFullYear(Number(v));
                 }
                 this.buildDateString();
             });
@@ -292,28 +272,29 @@ export class CreateEventModal extends Modal {
         });
     }
     async tryParse(/* note: string,  */ file: TFile) {
+        console.log('parsing')
         this.event.name = file.basename;
         const cache = this.app.metadataCache.getFileCache(file);
 
+        console.log(cache)
         const { frontmatter } = cache;
         if (frontmatter) {
             if ("fc-date" in frontmatter) {
                 const { day, month, year } = frontmatter["fc-date"];
-                if (day) this.event.date.day = day;
+                if (day) this.event.date.setDate(day);
                 if (month) {
                     if (typeof month === "string") {
                         const indexer =
                             this.calendar.static.months?.find(
                                 (m) => m.name == month
                             ) ?? this.calendar.static.months?.[0];
-                        this.event.date.month =
-                            this.calendar.static.months?.indexOf(indexer);
+                        this.event.date.setMonth(this.calendar.static.months?.indexOf(indexer));
                     }
                     if (typeof month == "number") {
-                        this.event.date.month = month - 1;
+                        this.event.date.setMonth(month - 1);
                     }
                 }
-                if (year) this.event.date.year = year;
+                if (year) this.event.date.setFullYear(year);
             }
             if ("fc-category" in frontmatter) {
                 if (

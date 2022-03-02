@@ -95,19 +95,12 @@ export interface Season {
 export interface Event {
     name: string;
     description: string;
-    date: {
-        month: number;
-        day: number;
-        year: number;
-    };
-    end?: {
-        month: number;
-        day: number;
-        year: number;
-    };
+    date: Date;
+    end?: Date;
     id: string;
     note: string;
     category: string;
+    allDay?: boolean;
 }
 
 export interface Era {
@@ -146,3 +139,4 @@ export interface CurrentCalendarData {
     month: number;
     day: number;
 }
+//FIX

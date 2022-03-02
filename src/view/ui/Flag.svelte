@@ -4,6 +4,7 @@
     import type { CurrentCalendarData, Event, EventCategory } from "src/@types";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
+    import dayjs from 'dayjs';
 
     export let event: Event;
     export let date: CurrentCalendarData;
@@ -16,17 +17,18 @@
     $: {
         if (event.end != undefined && !dayView) {
             multi = true;
-            start =
-                date.day === event.date.day &&
-                (event.date.month == undefined ||
-                    date.month == event.date.month) &&
-                (event.date.year == undefined || date.year === event.date.year);
-            first = start || date.day == 1;
-            end =
-                date.day === event.end.day &&
-                (event.end.month == undefined ||
-                    date.month == event.end.month) &&
-                (event.end.year == undefined || date.year === event.end.year);
+            start = true
+                // date.day === event.date.day &&
+                // (event.date.month == undefined ||
+                //     date.month == event.date.month) &&
+                // (event.date.year == undefined || date.year === event.date.year);
+            // first = start || date.day == 1;
+            first = true;
+            end = true
+                // date.day === event.end.day &&
+                // (event.end.month == undefined ||
+                //     date.month == event.end.month) &&
+                // (event.end.year == undefined || date.year === event.end.year);
             if (start && end) {
                 multi = false;
                 start = false;
@@ -50,6 +52,7 @@
     const note = (node: HTMLElement) => {
         setIcon(node, "note-glyph");
     };
+
 </script>
 
 <div
@@ -78,11 +81,11 @@
 >
     <div class="flag-content">
         <span class:clamp={!dayView} class:day-view={dayView}>
-            {event.name}</span
-        >
-        {#if event.note}
-            <div class="note" use:note />
-        {/if}
+            {event.name}
+            </span>
+        
+        <div class="time">{dayjs(event.date).format('hh:mm a') }</div>
+        
     </div>
 </div>
 
@@ -91,6 +94,7 @@
         cursor: pointer;
         position: relative;
         padding-left: 0.125rem;
+        padding-right: 0.125rem;
         text-align: left;
         width: 100%;
 
@@ -116,7 +120,7 @@
         text-overflow: ellipsis;
     }
 
-    .note {
+    .time {
         display: flex;
         align-self: center;
     }

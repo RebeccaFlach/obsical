@@ -33,8 +33,11 @@ export const FULL_VIEW = "FANTASY_CALENDAR_FULL_VIEW";
 
 import CalendarUI from "./ui/Calendar.svelte";
 import { confirmWithModal } from "src/settings/modals/confirm";
-import { daysBetween } from "src/utils/functions";
+import { createNote, daysBetween } from "src/utils/functions";
 import { MODIFIER_KEY } from "../main";
+
+import { google } from 'googleapis';
+import _ from 'underscore'
 
 addIcon(
     VIEW_TYPE,
@@ -52,7 +55,10 @@ declare module "obsidian" {
     }
 }
 
+
+
 export default class FantasyCalendarView extends ItemView {
+    oauth2Client: any;
     dropdownEl: HTMLDivElement;
     helper: CalendarHelper;
     noCalendarEl: HTMLDivElement;
@@ -75,6 +81,12 @@ export default class FantasyCalendarView extends ItemView {
         public options: { calendar?: Calendar; full?: boolean } = {}
     ) {
         super(leaf);
+        this.oauth2Client = new google.auth.OAuth2(
+            CLIENT_ID,
+            CLIENT_SECRET,
+            'urn:ietf:wg:oauth:2.0:oob' //copy paste instead of callback url
+        );
+        this.oauth2Client.setCredentials(JSON.parse(window.localStorage.getItem('tokens')));
 
         this.registerEvent(
             this.plugin.app.workspace.on("obsicals-updated", () => {
@@ -93,6 +105,7 @@ export default class FantasyCalendarView extends ItemView {
         /* window.view = this; */
     }
     updateCalendars() {
+        console.log('update calendars')
         if (!this.updateMe) {
             this.updateMe = true;
             return;
@@ -121,6 +134,7 @@ export default class FantasyCalendarView extends ItemView {
     update(calendar: Calendar) {
         this.calendar = calendar;
         this.helper.update(this.calendar);
+        console.log(calendar)
 
         this.registerCalendarInterval();
 
@@ -181,7 +195,7 @@ export default class FantasyCalendarView extends ItemView {
 
         this.build();
     }
-    createEventForDay(date: CurrentCalendarData) {
+    createEventForDay(date: Date) {
         const modal = new CreateEventModal(this.app, this.calendar, null, date);
 
         modal.onClose = () => {
@@ -260,7 +274,7 @@ export default class FantasyCalendarView extends ItemView {
                 }
                 menu.addItem((item) => {
                     item.setTitle("Set as Today").onClick(() => {
-                        this.calendar.current = day.date;
+                        // this.calendar.current = day.date;
 
                         this.helper.current.day = day.number;
 
@@ -293,6 +307,76 @@ export default class FantasyCalendarView extends ItemView {
                         displayWeeks: this.calendar.displayWeeks
                     });
                     this.plugin.saveSettings();
+                });
+            });
+        
+            menu.addItem((item) => {
+                item.setTitle("Import");
+                
+                const listEvents = () => {
+                    console.log('listing events')
+                    console.log(this.calendar.events)
+                    const calendar = google.calendar({version: 'v3', auth: this.oauth2Client});
+                    // calendar.events.get({
+                    //     calendarId: 'primary',
+                    //     eventId: ''
+                    // })
+                    calendar.events.list({
+                      calendarId: 'primary',
+                      timeMin: (new Date()).toISOString(),
+                      maxResults: 10,
+                      singleEvents: true,
+                      orderBy: 'startTime',
+                    }, (err, res) => {
+                      if (err) return console.log('The API returned an error: ' + err);
+                      const events = res.data.items;
+                      if (events.length) {
+                        _(events).each((event, i) => {
+                            const formatted =  {
+                                name: event.summary,
+                                date: new Date(event.start.dateTime || event.start.date),
+                                description: event.description,
+                                id: event.id,
+                                category: null,
+                                end: new Date(event.end.dateTime || event.end.date),
+                                allDay: !event.start.dateTime,
+                            } as Event;
+                            
+
+                            if (!_(this.calendar.events).find((e) => e.id === formatted.id)){
+                                formatted.note = createNote(event.summary, this.app, formatted);
+                                this.calendar.events.push(formatted);
+                            } 
+                            
+                        });
+                        
+
+                        this.plugin.saveSettings();
+
+                        this._app.$set({
+                            calendar: this.helper
+                        });
+
+                        this.triggerHelperEvent("day-update");
+                      } else {
+                        console.log('No upcoming events found.');
+                      }
+                    });
+                  }
+
+                item.onClick(() => {
+                    listEvents();
+                //     const refresh = JSON.parse(window.localStorage.getItem('tokens')).refresh_token;
+                //     this.oauth2Client.setCredentials({
+                //         this.oauth2Client.
+                //     this.oauth2Client.getToken(refresh).then(({tokens}) => {
+                       
+                //         console.log(tokens)
+                //         this.oauth2Client.setCredentials(tokens);
+                //         window.localStorage.setItem('tokens', JSON.stringify(tokens));
+                //         listEvents();
+                //     })
+                //    listEvents();
                 });
             });
             menu.addItem((item) => {
@@ -402,7 +486,9 @@ export default class FantasyCalendarView extends ItemView {
                                       ?.parent ?? "/"
                                 : "/";
 
-                            const date = `${event.date.year}-${
+                            console.log('this the problem?')
+                            
+                            const date = `${event.date.getFullYear()}-${
                                 event.date.month + 1
                             }-${event.date.day}`;
 

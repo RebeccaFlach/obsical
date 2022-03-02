@@ -22,15 +22,21 @@
     };
 
     $: {
-        events.sort((a, b) => {
-            if (a.date.year != b.date.year) {
-                return a.date.year - b.date.year;
-            }
-            if (a.date.month != b.date.month) {
-                return a.date.month - b.date.month;
-            }
-            return a.date.day - b.date.day;
-        });
+        
+        events.sort(
+
+            (a, b) => {
+                console.log('sorting events')
+                return 0;
+            // if (a.date.year != b.date.year) {
+            //     return a.date.year - b.date.year;
+            // }
+            // if (a.date.month != b.date.month) {
+            //     return a.date.month - b.date.month;
+            // }
+            // return a.date.day - b.date.day;
+        }
+        );
     }
     const getCategory = (category: string) => {
         return categories.find(({ id }) => id == category);

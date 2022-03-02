@@ -1,4 +1,6 @@
-import type { CurrentCalendarData, LeapDay, Month } from "../@types";
+import type { CurrentCalendarData, LeapDay, Month, Event } from "../@types";
+import dayjs from "dayjs";
+import { App, normalizePath } from "obsidian";
 
 export function daysBetween(date1: Date, date2: Date) {
     const d1 = window.moment(date1);
@@ -28,6 +30,54 @@ export function nanoid(len: number) {
             v = c == "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
+}
+
+export function createNote(name: string, app: App, data:Event): string {
+    const note = normalizePath(`${name}.md`);
+    const date = dayjs(data.date);
+    const dateFormat = 'dddd, MMMM D YYYY ';
+    const timeFormat = 'h:mm a'
+    const end = dayjs(data.end);
+    // const formattedDate = date.format(data.allDay ? "YYYY-MM-DD" : "YYYY-MM-DD")
+    let formattedDate;
+    // allDay dates never hold time, so an end date can/should only occur if the allDay date spans multiple days
+    if (data.allDay) {
+        // Reminder: ## is for a header in markdown
+        formattedDate = `## ${date.format(dateFormat)}`;
+        if (data.end)
+            formattedDate += (' - ' + end.format(dateFormat));
+    } 
+    else {
+        if (data.end){
+            if (date.isSame(end, 'day'))
+                // End date is start date? Date only needed once, put time in a lower-level heading
+                formattedDate = `## ${date.format(dateFormat)} \n ### ${date.format(timeFormat)} - ${end.format(timeFormat)}`;
+            else 
+                // Different start and end dates but not all day? Prioritize both time and date in the heading
+                formattedDate = `## ${date.format(dateFormat + timeFormat)} - ${end.format(dateFormat + timeFormat)}`;
+        }
+        else 
+            // No end date and time? Prioritize date and put time in lower-level heading
+            formattedDate = `## ${date.format(dateFormat)} \n ### ${date.format(timeFormat)}`
+    }
+    // all day: DATE - DATE
+    // time, same day
+    app.vault.create(
+        note,
+        `
+---
+event-start: ${data.date}
+event-end: ${data.end}
+---
+
+# ${data.name}
+
+${formattedDate}
+
+${data.description || ''}`
+    )
+
+    return note; 
 }
 
 export function getIntervalDescription(leapday: LeapDay) {
@@ -66,58 +116,15 @@ export function ordinal(i: number) {
     return i + "th";
 }
 export function dateString(
-    date: CurrentCalendarData,
+    date: Date,
     months: Month[],
-    end?: CurrentCalendarData
+    end?: Date
 ) {
-    if (!date || date.day == undefined) {
+    if (!date) {
         return "";
     }
-    const { day, month, year } = date;
-    if (month != undefined && !months[month]) return "Invalid Date";
 
-    if (end && end.day) {
-        const endDay = end.day;
-        const endMonth = end.month;
-        const endYear = end.year;
-
-        if (
-            endMonth != undefined &&
-            endYear != undefined &&
-            month != undefined &&
-            year != undefined
-        ) {
-            if (year != endYear) {
-                return `${months[month].name} ${ordinal(day)}, ${year} - ${
-                    months[endMonth].name
-                } ${ordinal(endDay)}, ${endYear}`;
-            }
-            if (endMonth == month) {
-                return `${months[month].name} ${ordinal(day)}-${ordinal(
-                    endDay
-                )}, ${year}`;
-            }
-            if (month != undefined && year != undefined) {
-                return `${months[month].name} ${ordinal(day)}-${
-                    months[endMonth].name
-                } ${ordinal(endDay)}, ${year}`;
-            }
-            if (month != undefined) {
-                return `${months[month].name} ${ordinal(day)}-${
-                    months[endMonth].name
-                } ${ordinal(endDay)} of every year`;
-            }
-            return `${ordinal(day)}-${ordinal(endDay)} of every month`;
-        }
-    }
-
-    if (month != undefined && year != undefined) {
-        return `${months[month].name} ${ordinal(day)}, ${year}`;
-    }
-    if (month != undefined) {
-        return `${months[month].name} ${ordinal(day)} of every year`;
-    }
-    return `${ordinal(day)} of every month`;
+   return dayjs(date).toString(); //TODO format nicely
 }
 function LeapDay(leapday: any, LeapDay: any) {
     throw new Error("Function not implemented.");
